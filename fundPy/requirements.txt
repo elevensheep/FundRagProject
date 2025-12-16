@@ -1,0 +1,32 @@
+# 1. 메시지 큐 (Spring Boot와 통신)
+# kafka-python은 3.12버전에서 에러가 날 수 있어 ng(Next Gen) 버전을 추천합니다.
+kafka-python-ng
+
+# 2. LLM 및 AI (Gemini)
+google-generativeai
+
+# 3. 벡터 데이터베이스 (RAG 검색용)
+# Pinecone v3.0 이상을 사용합니다.
+pinecone
+
+# 4. 데이터 수집 (크롤링)
+requests
+beautifulsoup4
+selenium
+webdriver-manager
+# BS4 속도 향상을 위한 파서
+lxml
+
+# 5. 데이터 처리 및 주식 정보 (시계열 데이터)
+pandas
+numpy
+yfinance
+
+# 6. DB 연결 (MySQL 저장용 - 필수 추가)
+# Pandas의 DataFrame을 DB에 쉽게 넣기 위해 필요합니다.
+SQLAlchemy
+pymysql
+
+# 7. 환경 변수 및 유틸리티
+python-dotenv
+tqdm
