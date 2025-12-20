@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>주식 AI 질문 서비스</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 700px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+            text-align: center;
+        }
+
+        .subtitle {
+            color: #666;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: #555;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .alert.show {
+            display: block;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #667eea;
+            margin-top: 10px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .result-container {
+            display: none;
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .result-container.show {
+            display: block;
+        }
+
+        .result-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        .result-query {
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .result-content {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            line-height: 1.8;
+            white-space: pre-wrap;
+            color: #333;
+        }
+
+        .processing-info {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #666;
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📈 주식 AI 질문</h1>
+        <p class="subtitle">궁금한 주식에 대해 AI에게 물어보세요</p>
+
+        <div id="alert" class="alert"></div>
+
+        <form id="stockForm">
+            <div class="form-group">
+                <label for="userId">사용자 ID</label>
+                <input type="text" id="userId" name="userId" placeholder="사용자 ID를 입력하세요" required>
+            </div>
+
+            <div class="form-group">
+                <label for="query">질문</label>
+                <textarea id="query" name="query" placeholder="예: 삼성전자 전망 알려줘" required></textarea>
+            </div>
+
+            <button type="submit" id="submitBtn">질문하기</button>
+
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <p style="margin-top: 10px;">AI가 답변을 생성하고 있습니다...</p>
+            </div>
+        </form>
+
+        <div id="resultContainer" class="result-container">
+            <div class="result-title">💡 AI 답변</div>
+            <div class="result-query" id="resultQuery"></div>
+            <div class="result-content" id="resultContent"></div>
+            <div class="processing-info" id="processingInfo"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:8080';
+
+        const form = document.getElementById('stockForm');
+        const alertBox = document.getElementById('alert');
+        const submitBtn = document.getElementById('submitBtn');
+        const loading = document.getElementById('loading');
+        const resultContainer = document.getElementById('resultContainer');
+        const resultQuery = document.getElementById('resultQuery');
+        const resultContent = document.getElementById('resultContent');
+        const processingInfo = document.getElementById('processingInfo');
+
+        let pollingInterval = null;
+
+        function showAlert(message, type) {
+            alertBox.className = `alert ${type === 'success' ? 'alert-success' : 'alert-error'} show`;
+            alertBox.innerHTML = message;
+
+            setTimeout(() => {
+                alertBox.classList.remove('show');
+            }, 5000);
+        }
+
+        function stopPolling() {
+            if (pollingInterval) {
+                clearInterval(pollingInterval);
+                pollingInterval = null;
+            }
+        }
+
+        async function pollResult(documentId) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/stock/result/${documentId}`);
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    if (data.status === 'COMPLETED') {
+                        // 완료됨
+                        stopPolling();
+                        submitBtn.disabled = false;
+                        loading.classList.remove('show');
+
+                        resultQuery.textContent = `질문: ${data.query}`;
+                        resultContent.textContent = data.answer;
+                        processingInfo.textContent = `처리 시간: ${data.processingTime}초`;
+                        resultContainer.classList.add('show');
+
+                        showAlert('답변이 완료되었습니다!', 'success');
+                    }
+                    // PENDING이면 계속 폴링
+                } else {
+                    stopPolling();
+                    submitBtn.disabled = false;
+                    loading.classList.remove('show');
+                    showAlert(data.message || '결과 조회에 실패했습니다.', 'error');
+                }
+            } catch (error) {
+                stopPolling();
+                submitBtn.disabled = false;
+                loading.classList.remove('show');
+                showAlert(`결과 조회 중 오류가 발생했습니다: ${error.message}`, 'error');
+            }
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const userId = document.getElementById('userId').value.trim();
+            const query = document.getElementById('query').value.trim();
+
+            if (!userId || !query) {
+                showAlert('모든 필드를 입력해주세요.', 'error');
+                return;
+            }
+
+            // UI 초기화
+            submitBtn.disabled = true;
+            loading.classList.add('show');
+            alertBox.classList.remove('show');
+            resultContainer.classList.remove('show');
+            stopPolling();
+
+            try {
+                // 질문 전송
+                const response = await fetch(`${API_BASE_URL}/api/stock/ask`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        userId: userId,
+                        query: query
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    // 폴링 시작 (2초마다 결과 확인)
+                    pollingInterval = setInterval(() => {
+                        pollResult(data.documentId);
+                    }, 2000);
+
+                    // 즉시 한 번 확인
+                    pollResult(data.documentId);
+                } else {
+                    submitBtn.disabled = false;
+                    loading.classList.remove('show');
+                    showAlert(data.message || '질문 접수에 실패했습니다.', 'error');
+                }
+            } catch (error) {
+                submitBtn.disabled = false;
+                loading.classList.remove('show');
+                showAlert(`네트워크 오류가 발생했습니다: ${error.message}`, 'error');
+            }
+        });
+    </script>
+</body>
+</html>

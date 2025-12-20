@@ -1,0 +1,30 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# IDE
+.idea
+*.iml
+.vscode
+
+# Build artifacts
+**/build/
+**/target/
+**/.gradle/
+**/bin/
+
+# Python
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.pyd
+.Python
+.env
+
+# Logs
+**/*.log
+
+# OS
+.DS_Store
+Thumbs.db

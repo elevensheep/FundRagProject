@@ -1,6 +1,6 @@
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '4.0.0'
+    id 'org.springframework.boot' version '3.4.0' // 또는 사용 중인 안정화 버전 (4.0.0은 아직 정식 출시 전일 수 있음)
     id 'io.spring.dependency-management' version '1.1.7'
 }
 
@@ -10,17 +10,7 @@ description = 'fundManage'
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(23)
-    }
-}
-
-tasks.withType(JavaCompile).configureEach {
-    options.release = 21
-}
-
-configurations {
-    compileOnly {
-        extendsFrom annotationProcessor
+        languageVersion = JavaLanguageVersion.of(21)
     }
 }
 
@@ -29,13 +19,28 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-mongodb'
-    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+    // 1. Kafka 필수 추가 (이게 없으면 아까 드린 코드가 에러 납니다)
+    implementation 'org.springframework.kafka:spring-kafka'
+
+    // 2. Web 수정 (webmvc -> web)
+    // starter-web이 Tomcat(서버)과 MVC를 모두 포함합니다.
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+
+    // 3. MongoDB (이름 수정 권장)
+    // 보통 data-mongodb가 표준 스타터 이름입니다.
+    implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
+
+    // 4. Validation (Jakarta Validation API)
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+    // 유틸리티
     compileOnly 'org.projectlombok:lombok'
-    developmentOnly 'org.springframework.boot:spring-boot-devtools'
     annotationProcessor 'org.projectlombok:lombok'
-    testImplementation 'org.springframework.boot:spring-boot-starter-mongodb-test'
-    testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+    // 테스트
+    testImplementation 'org.springframework.boot:spring-boot-starter-test' // webmvc-test 대신 통합 test 스타터 사용 권장
+    testImplementation 'org.springframework.kafka:spring-kafka-test' // Kafka 테스트용
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
