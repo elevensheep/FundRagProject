@@ -9,20 +9,43 @@ def start_worker():
     # 1. AI 서비스 초기화
     rag_service = StockRAGService()
 
-    # 2. Kafka Producer 설정
-    producer = KafkaProducer(
-        bootstrap_servers=Config.KAFKA_BOOTSTRAP_SERVERS,
-        value_serializer=lambda x: json.dumps(x).encode('utf-8')
-    )
+    # 2. Kafka Producer & Consumer 설정 (재시도 로직 추가)
+    producer = None
+    consumer = None
+    retry_count = 0
+    max_retries = 10
 
-    # 3. Kafka Consumer 설정
-    consumer = KafkaConsumer(
-        Config.TOPIC_REQUEST,
-        bootstrap_servers=Config.KAFKA_BOOTSTRAP_SERVERS,
-        group_id='stock-ai-worker-group',
-        auto_offset_reset='latest',
-        value_deserializer=lambda x: json.loads(x.decode('utf-8'))
-    )
+    while retry_count < max_retries:
+        try:
+            print(f"🔄 Connecting to Kafka (Attempt {retry_count + 1}/{max_retries})...")
+            
+            # Kafka Producer 설정
+            producer = KafkaProducer(
+                bootstrap_servers=Config.KAFKA_BOOTSTRAP_SERVERS,
+                value_serializer=lambda x: json.dumps(x).encode('utf-8'),
+                api_version=(2, 5, 0)  # 브로커 버전 명시적으로 지정
+            )
+
+            # Kafka Consumer 설정
+            consumer = KafkaConsumer(
+                Config.TOPIC_REQUEST,
+                bootstrap_servers=Config.KAFKA_BOOTSTRAP_SERVERS,
+                group_id='stock-ai-worker-group',
+                auto_offset_reset='latest',
+                value_deserializer=lambda x: json.loads(x.decode('utf-8')),
+                api_version=(2, 5, 0)  # 브로커 버전 명시적으로 지정
+            )
+            
+            print("✅ Successfully connected to Kafka!")
+            break
+        except Exception as e:
+            print(f"⚠️ Connection failed: {e}")
+            retry_count += 1
+            time.sleep(5)
+    
+    if not producer or not consumer:
+        print("❌ Could not connect to Kafka after multiple attempts. Exiting.")
+        return
 
     print(f"✅ Python Worker Started! Listening on '{Config.TOPIC_REQUEST}'...")
 

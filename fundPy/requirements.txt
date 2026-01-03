@@ -3,6 +3,9 @@ kafka-python-ng
 
 # 2. LLM (Gemini)
 google-genai
+langchain
+langchain-google-genai
+langchain-pinecone
 
 # 3. 벡터 DB
 pinecone>=3.0.0
@@ -18,6 +21,8 @@ lxml
 pandas
 numpy<2.0.0
 yfinance
+requests
+bs4
 
 # 6. DB 연결 (MySQL)
 # mysql-connector-python 대신 호환성 좋은 pymysql 사용
